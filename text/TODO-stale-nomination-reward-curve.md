@@ -33,7 +33,7 @@ The proposal aims to address these problems by tying nomination influence to nom
 Primary stakeholders are:
 
 - **Nominators**: Directly affected. Active nominators are unaffected; passive nominators see reduced influence and rewards over time.
-- **Validators**: Indirectly affected. Validators who maintain quality and reasonable commission retain support; those that coast on stale stake lose ground and, in the limit, drop out of the active set.
+- **Validators**: Indirectly affected. Validators who maintain quality and reasonable commission retain support; those that coast on stale stake lose ground and may eventually drop out of the active set.
 - **Nomination pools and pool members**: Pools nominate on behalf of their members, so the freshness counter applies at the pool level. Pool operators must keep nominations refreshed; pool members are exposed to the pool's freshness through their share of pool rewards.
 - **Wallet, dashboard, and staking UI developers**: Will need to surface staleness information to users and provide a clear path for re-nominating.
 
@@ -43,9 +43,9 @@ Primary stakeholders are:
 
 Each nomination has an associated _freshness_, defined as the number of eras since the nominator last submitted a `nominate` extrinsic. A configurable, monotonically non-increasing function `f(staleness) ∈ [Floor, 1]` produces a multiplier that is applied to the nominator's effective stake when the election snapshot is taken.
 
-The multiplier is applied **only at the election input stage**, by scaling the nominator's `voter_weight`. All downstream behavior — validator selection by Phragmen/PJR, the per-validator stake snapshot, and the per-nominator reward share computed from that snapshot — is unchanged.
+The multiplier is applied **only at the election input stage**, by scaling the nominator's `voter_weight`. All downstream behavior is unchanged: validator selection by Phragmen/PJR, the per-validator stake snapshot, and the per-nominator reward share computed from that snapshot.
 
-The reward effect is therefore implicit but real: a stale nominator contributes a smaller share of a validator's total backing, takes a proportionally smaller share of that validator's era reward, and the remainder flows to the validator's other (non-stale) nominators. No reward is burned, no logic is added to the reward path, and no change is made to inflation or the reward curve.
+A stale nominator therefore contributes a smaller share of a validator's total backing, takes a proportionally smaller share of that validator's era reward, and the remainder flows to the validator's other (non-stale) nominators. No reward is burned, no logic is added to the reward path, and no change is made to inflation or the reward curve.
 
 ### Behavior in the Election
 
@@ -69,7 +69,7 @@ The staleness multiplier is applied to the value emitted into the snapshot, **no
 
 The consequence: a heavily-stale voter still occupies the position in iteration order that their bonded balance entitles them to, even though the value they contribute to the snapshot is reduced or zero. In edge cases where the snapshot is bounded by voter count and that bound is binding, a stale voter could in principle take a snapshot slot that a fresher, lower-bonded voter further down the list would have made better use of.
 
-This is an accepted tradeoff. The alternatives — re-bagging voters as they age across thresholds, or using an alternative `VoterList` keyed on staleness-adjusted weight — would impose per-era maintenance work on every nominator near a threshold, for a benefit that materializes only when the voter-count bound is the binding constraint. Voter-count bounds are rarely binding in practice, and runtimes that find this assumption no longer holds may revisit by supplying a custom `VoterList`.
+This is an accepted tradeoff. The alternatives are re-bagging voters as they age across thresholds, or using an alternative `VoterList` keyed on staleness-adjusted weight. Both would impose per-era maintenance work on every nominator near a threshold, for a benefit that materializes only when the voter-count bound is the binding constraint. Voter-count bounds are rarely binding in practice, and runtimes that find this assumption no longer holds may revisit by supplying a custom `VoterList`.
 
 ### The Decay Curve
 
@@ -116,9 +116,9 @@ The following do **not** reset the counter:
 - `bond_extra`, `unbond`, `withdraw_unbonded`, `payout_stakers`, and other staking calls that do not change validator selection.
 - Any indirect activity such as receiving rewards or being slashed.
 
-`chill` is a special case: it removes the nominator's entry from `Nominators` storage entirely. There is no `submitted_in` to update because there is no nomination. When the nominator returns, they must call `nominate` to re-enter the active set, which sets `submitted_in` to the current era — a fresh start, naturally aligned with the goal of making nominators reconsider their validator selection at every transition.
+`chill` is a special case: it removes the nominator's entry from `Nominators` storage entirely. There is no `submitted_in` to update because there is no nomination. When the nominator returns, they must call `nominate` to re-enter the active set, which sets `submitted_in` to the current era. This is a fresh start, aligned with the goal of making nominators reconsider their validator selection at every transition.
 
-There is intentionally no separate "renew" extrinsic. The act of staying engaged is the act of selecting validators; if a nominator wants to keep their existing list, they call `nominate` with that list. Adding a cheap renew path would let a nominator refresh without the friction of reviewing their selection — which is exactly the friction the RFC is trying to introduce.
+There is intentionally no separate "renew" extrinsic. The act of staying engaged is the act of selecting validators; if a nominator wants to keep their existing list, they call `nominate` with that list. Adding a cheap renew path would let a nominator refresh without the friction of reviewing their selection. That friction is exactly what the RFC is trying to introduce.
 
 ### Interaction with Nomination Pools
 
@@ -130,7 +130,7 @@ Pool members are exposed to the pool's freshness through reduced pool rewards: a
 
 Rewards are not burned and are not redirected to the Treasury. The decay multiplier is applied to election input weight only; reward distribution downstream is unchanged.
 
-The natural consequence — that a stale nominator's "lost" share of a validator's reward flows to that validator's non-stale co-nominators — is intentional and a feature of the design:
+A natural consequence of this is that a stale nominator's "lost" share of a validator's reward flows to that validator's non-stale co-nominators. This is intentional and a feature of the design:
 
 - It keeps the implementation surgical: one site of change in election input, no reward-path changes.
 - It preserves the protocol-level invariant that era inflation is fully distributed to active stake.
@@ -144,14 +144,14 @@ This deliberately trades a one-cycle delay in evicting long-stale stake for a mu
 
 ### Secondary Effect: Recurring Ecosystem Engagement
 
-A side benefit of requiring periodic re-nomination is that nominators are brought back into contact with Polkadot's user-facing surface on a regular cadence — under the proposed defaults, roughly once per month. Each of those visits is an opportunity for staking UIs and the broader ecosystem to surface new applications, features, governance referenda, and other developments to a financially-engaged audience with clear incentive to show up.
+A side benefit of requiring periodic re-nomination is that nominators are brought back into contact with Polkadot's user-facing surface on a regular cadence. Under the proposed defaults, that cadence is roughly once per month. Each visit is an opportunity for staking UIs and the broader ecosystem to surface new applications, features, governance referenda, and other developments to a financially-engaged audience with clear incentive to show up.
 
-This is not a primary motivation for the RFC, and the curve parameters should not be tuned for engagement metrics. But it is a real and intentional upside of the chosen mechanism: stakers who have to re-engage in order to keep getting paid are stakers who are reachable, and "reachable" is a precondition for almost every other ecosystem goal.
+This is not a primary motivation for the RFC, and the curve parameters should not be tuned for engagement metrics. But it is a real upside of the chosen mechanism: stakers who have to re-engage in order to keep getting paid are stakers who are reachable.
 
 ## Drawbacks
 
 - **User experience**: Nominators must take a periodic action to maintain full influence and rewards. Users who forget, lose access for an extended period, or are simply unaware of the change will see their influence and rewards decay. The grace period is intended to be long enough that ordinary engaged users are not affected, but the new burden is real.
-- **Asymmetric impact on long-term holders**: Set-and-forget stake — including stake from estates, lost keys, or otherwise dormant accounts — will decay to the floor. This effectively reduces those participants' weight in validator selection, which is precisely the goal, but should be named explicitly.
+- **Asymmetric impact on long-term holders**: Set-and-forget stake (including stake from estates, lost keys, or otherwise dormant accounts) will decay to the floor. This reduces those participants' weight in validator selection, which is the intent, but worth flagging explicitly.
 - **Custodial and institutional flows**: Custodians staking on behalf of clients will need to integrate periodic re-nomination into their operations.
 - **Lost rewards are not directly recoverable**: A nominator whose weight decayed during an era cannot retroactively reclaim the rewards they would have earned had they been fresh. The RFC accepts this as the cost of the incentive.
 
@@ -173,7 +173,7 @@ The decay function is pure and trivially testable. Integration tests should cove
 
 - **No new attack surface in the election solver.** The reduction in input stake does not change the structure of the optimization problem; the solver receives smaller weights for some voters and proceeds as before.
 - **Slashing.** Staleness does not interact with slashing. A stale nominator is still slashed in full if their elected validator misbehaves; reducing slashing based on staleness would perversely reward inattention.
-- **Griefing.** No third party can cause a nominator's freshness to decay — only the passage of time without action by the nominator themselves.
+- **Griefing.** No third party can cause a nominator's freshness to decay; only the passage of time without action by the nominator themselves can do so.
 - **Self-bond floor.** Validators with significant self-bond are not directly affected, only the nominators backing them. This is consistent with the broader NPoS design.
 
 ### Privacy
@@ -186,7 +186,7 @@ No change. `submitted_in` is already on-chain and observable.
 
 The change adds:
 
-- One additional read of `submitted_in` from each `Nominations` entry already iterated during snapshot construction (at no marginal storage cost — the field already exists).
+- One additional read of `submitted_in` from each `Nominations` entry already iterated during snapshot construction (at no marginal storage cost; the field already exists).
 - One arithmetic evaluation of the curve per voter per era.
 
 Both are trivial relative to existing election work. No new storage items are introduced.
@@ -199,13 +199,11 @@ Both are trivial relative to existing election work. No new storage items are in
 
 ### Compatibility
 
-This is a runtime upgrade affecting staking economics. It does not change any external interface in a breaking way — existing extrinsics continue to work with the same signatures. The migration sets `submitted_in` for all existing nominators to the upgrade era; no other migration is required.
+This is a runtime upgrade affecting staking economics. It does not change any external interface in a breaking way. Existing extrinsics continue to work with the same signatures. The migration sets `submitted_in` for all existing nominators to the upgrade era; no other migration is required.
 
 ## Prior Art and References
 
 - [Polkadot Wiki: Nominated Proof-of-Stake](https://wiki.polkadot.network/docs/learn-staking)
-- [RFC-0010: Burn Coretime Revenue](https://polkadot-fellows.github.io/RFCs/approved/0010-burn-coretime-revenue.html) — considered as a precedent for redirecting protocol revenue, but explicitly not the path taken here; the reward effect in this RFC flows through existing NPoS reward distribution, not via burning or Treasury redirection.
-- Conviction-decay mechanisms in OpenGov, which apply a related principle of tying influence to ongoing engagement on the governance side.
 - Prototype implementation: [`shawntabrizi-stale-nominations`](https://github.com/paritytech/polkadot-sdk/tree/shawntabrizi-stale-nominations) branch of `polkadot-sdk`, modifying `frame/staking/src/pallet/impls.rs` at the election snapshot site.
 
 ## Unresolved Questions
@@ -215,7 +213,6 @@ This is a runtime upgrade affecting staking economics. It does not change any ex
 
 ## Future Directions and Related Material
 
-- **Validator-side staleness.** This RFC applies the staleness mechanism only to nominators. Validators' `validate(prefs)` registrations are not changed and continue to persist indefinitely, as today. A parallel mechanism — requiring validators to periodically re-call `validate` to remain in the candidate pool — would address dormant or abandoned validator entries, and is a plausible follow-up, but is explicitly **not** included in this RFC and should be proposed as its own RFC.
+- **Validator-side staleness.** This RFC applies the staleness mechanism only to nominators. Validators' `validate(prefs)` registrations are not changed and continue to persist indefinitely, as today. A parallel mechanism (requiring validators to periodically re-call `validate` to remain in the candidate pool) would address dormant or abandoned validator entries, and is a plausible follow-up, but is explicitly **not** included in this RFC and should be proposed as its own RFC.
 - **Differentiated curves.** The trait shape permits different curves for different contexts (e.g. a longer grace period for nomination pools, a steeper curve for solo nominators), should that prove useful.
 - **Nominator reputation and analytics.** With per-nominator freshness now load-bearing, downstream tooling can surface "stewardship" metrics for nominators and pools.
-- **Conviction-style integration.** The freshness counter could in principle interact with a future opt-in conviction mechanism on the staking side, where nominators voluntarily commit to longer review cycles in exchange for boosted weight. This is speculative and outside the scope of this RFC.

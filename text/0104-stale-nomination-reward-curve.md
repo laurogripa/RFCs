@@ -1,4 +1,4 @@
-# RFC-TODO: Stale Nomination Reward Curve
+# RFC-0104: Stale Nomination Reward Curve
 
 |                 |                                                                                             |
 | --------------- | ------------------------------------------------------------------------------------------- |

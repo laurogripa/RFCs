@@ -8,11 +8,11 @@
 
 ## Summary
 
-Proof of Personhood raises an important question for Kusama Society: what role should it play (if any)?
+The upcoming Proof of Personhood raises an important question for Kusama Society: what role should it play, if any?
 
 Kusama Society (Kappa Sigma Mu) is one of the oldest and most consistent experiments in the ecosystem. It was one of the first live pallets that composed other pallets and served as a battle test. In a strict sense, it has been successful: it fulfilled its purpose and works as intended. At the same time, it leaves a few missed opportunities, since there is not much to do after joining it besides voting.
 
-A couple years ago, a new version was created by Gavin Wood. The migration to V2 worked well, but some issues have appeared since then. For instance, a few months ago, a collusion allowed a candidate to claim membership without providing Proof-of-Ink. As a short-term solution, `kick_member` was introduced and made callable by the Founder. This works as an emergency measure, but it gives too much power to the Founder.
+Currently, we are in V2, created by Gavin Wood a couple of years ago. It has been better than V1 in general, but some issues have appeared. A few months ago, for example, coordinated accounts allowed a candidate to claim membership without providing Proof-of-Ink. As a short-term solution, `kick_member` was introduced and made callable by the Founder. This works as an emergency measure, but gives too much power to the Founder.
 
 With all that in mind, there are several questions to answer. First and most important: Does the Kusama Society still have a place in the Proof of Personhood vision? If yes, how? What experiments should be done with it? For example, could the Society work collectively as one of the curators for the art bounty? What other ideas could be tested? More specifically, should `kick_member` be delegated to Society members instead of the Founder?
 
@@ -23,6 +23,7 @@ These questions need further discussion. However, at the very least, this RFC pr
 - **Bid/claim gap exploit**: A coordinated long-range attack could potentially spend the whole treasury (~177K KSM) in just a few years, instead of the expected 200 years. Hard to pull off in full, but can be done in smaller scales. Already happening.
 - **Multiple identities**: A single person could hold multiple identities (>10) by tattooing themselves multiple times. Likely to be already happening.
 - **What's more concerning is that some of these exploits can be combined.**
+- Finally, **V1 payout migration issue**: some payout history failed during the V1 to V2 migration.
 
 The RFC proposes:
 
@@ -115,7 +116,7 @@ The proposed quorum:
 
 #### False PoI and multiple identities
 
-Change the rules to explicitly ask for a long video of the process (at least 30 seconds, maybe 3 minutes to be make it more future-proof). This should be a simple runtime upgrade to update the rules hash in the pallet constants. 
+Change the rules to explicitly ask for a long video of the process (at least 30 seconds, maybe 3 minutes to be make it more future-proof). This should be a simple runtime upgrade to update the rules hash in the pallet constants.
 
 Regarding multiple identities, we could specific only a fixed of allowed regions of the body, but this one needs further discussion.
 

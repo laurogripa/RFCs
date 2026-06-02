@@ -2,9 +2,9 @@
 
 |                 |                                                                                             |
 | --------------- | ------------------------------------------------------------------------------------------- |
-| **Start Date**  | 2026-05-15                                                                                  |
+| **Start Date**  | 2026-06-02                                                                                  |
 | **Description** | Fix Society V2 bid/claim gap, candidate quorum, and Proof-of-Ink requirements               |
-| **Authors**     |                                                                                             |
+| **Authors**     | Lauro Gripa                                                                                 |
 
 ## Summary
 
@@ -155,7 +155,6 @@ Both options require runtime upgrades.
 ## Drawbacks
 
 - Automatic membership claim removes the candidate’s ability to choose when to claim membership
-- Automatic rejection can reject candidates without a founder action
 - Making the intake flow more deterministic can make Society less interesting and less chaotic as an experiment
 - Quorum can slow down intake if members are not voting
 - Requiring videos and predetermined body regions can reduce privacy and increase friction for candidates
@@ -220,11 +219,10 @@ The rules hash change also needs coordination with Society communication channel
 
 ## Prior Art and References
 
-- [`pallet_society::claim_membership`](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/frame/society/src/lib.rs)
-- [`pallet_society::select_new_candidates`](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/frame/society/src/lib.rs)
-- [`pallet_society::kick_member`](https://github.com/paritytech/polkadot-sdk/pull/11154)
-- Kusama runtime [`PeriodSpend = ConstU128<{ 500 * QUID }>`](https://github.com/polkadot-fellows/runtimes/blob/db4bb534cb411c0d6a2fe57eb331e6ec93ace825/relay/kusama/src/lib.rs#L1064)
-- [Kusama Society Proof-of-Ink guide](https://ksmsociety.io/explore/poi/rules)
+- [Society Pallet](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/frame/society/src/lib.rs)
+- [PR introducing kick_member](https://github.com/paritytech/polkadot-sdk/pull/11154)
+- [PeriodSpend value](https://github.com/polkadot-fellows/runtimes/blob/db4bb534cb411c0d6a2fe57eb331e6ec93ace825/relay/kusama/src/lib.rs#L1064)
+- [Proof-of-Ink rules](https://ksmsociety.io/explore/poi/rules)
 
 ## Unresolved Questions
 

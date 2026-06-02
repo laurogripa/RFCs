@@ -220,10 +220,11 @@ The rules hash change also needs coordination with Society communication channel
 
 ## Prior Art and References
 
-- [Society Pallet](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/frame/society/src/lib.rs)
-- [PR introducing kick_member](https://github.com/paritytech/polkadot-sdk/pull/11154)
-- [PeriodSpend value](https://github.com/polkadot-fellows/runtimes/blob/db4bb534cb411c0d6a2fe57eb331e6ec93ace825/relay/kusama/src/lib.rs#L1064)
-- [Proof-of-Ink rules](https://ksmsociety.io/explore/poi/rules)
+- [`pallet_society::claim_membership`](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/frame/society/src/lib.rs)
+- [`pallet_society::select_new_candidates`](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/frame/society/src/lib.rs)
+- [`pallet_society::kick_member`](https://github.com/paritytech/polkadot-sdk/pull/11154)
+- Kusama runtime [`PeriodSpend = ConstU128<{ 500 * QUID }>`](https://github.com/polkadot-fellows/runtimes/blob/db4bb534cb411c0d6a2fe57eb331e6ec93ace825/relay/kusama/src/lib.rs#L1064)
+- [Kusama Society Proof-of-Ink guide](https://ksmsociety.io/explore/poi/rules)
 
 ## Unresolved Questions
 

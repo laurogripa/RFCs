@@ -128,7 +128,7 @@ Re-design the bidding and claiming process to fix the gap.
 The gap can be fixed by either:
 
 - Deducting the bid from the pot earlier — as soon as the bidder turns into candidate — instead of waiting to deduct only when the candidate claims membership. The bid can be returned to the pot if the candidate is rejected.
-- Implementing automatic claim for approvals and automatic rejection for rejections. This way candidates still have enough time to present PoI, but once a clear approval is reached after the 2-round window, the candidate turns into member automatically.
+- Implementing automatic claim for approvals and automatic rejection for rejections. This way candidates still have enough time to present PoI, but once a clear approval is reached after the 2-round window, the candidate turns into member automatically. However, this still can be used if members collude to keep the voting undecided.
 
 Both options require runtime upgrades.
 
@@ -162,19 +162,23 @@ Both options require runtime upgrades.
 - Deducting the bid from the pot earlier changes pot accounting and requires care when candidates are rejected
 - Removing `kick_member` can leave the Society without an emergency tool
 - Keeping `kick_member` gives too much power to the Founder
-- Moving `kick_member` responsibility to members through a vote is more fair, but complex
+- Moving `kick_member` responsibility to members through a vote is fairer, but complex
 
 ## Testing, Security, and Privacy
 
 Testing should cover:
 
-- A candidate with clear approval and quorum becomes a member automatically after the 2-round window
-- A candidate with clear rejection and quorum is rejected automatically after the 2-round window
+- If automatic claim is implemented:
+    - A candidate with clear approval and quorum becomes a member automatically after the 2-round window
+    - A candidate with clear rejection and quorum is rejected automatically after the 2-round window
+    - A candidate cannot reproduce the recent no-PoI incident by getting fast votes and invoking `claim_membership`
+    - Approved-but-unclaimed candidates cannot be used to multiply payout exposure across rotations
+- If bid deduction is implemented:
+    - The bid is deducted from the pot when the bidder turns into candidate
+    - The bid is returned to the pot if the candidate is rejected
+    - Multiple pending candidates cannot make the pot over-select new candidates across rotations
 - A candidate without quorum cannot become a member
 - A candidate with many approvals cannot claim membership unless quorum is reached
-- A candidate cannot reproduce the recent no-PoI incident by getting fast votes and invoking `claim_membership`
-- Approved-but-unclaimed candidates cannot be used to multiply payout exposure across rotations
-- If the bid is deducted when the bidder turns into candidate, the bid is returned to the pot if the candidate is rejected
 - If `kick_member` remains, tests should cover who can call it and what happens to the kicked member's payouts
 
 Security improves because:
@@ -182,7 +186,7 @@ Security improves because:
 - A single approval is no longer enough
 - Candidates cannot claim without quorum
 - Candidates cannot wait indefinitely after approval to claim at a strategic time
-- The pot can be made to account for pending candidates
+- The pot can be made to account for pending candidates (pot predictability increases)
 - The PoI rules become harder to bypass with AI-generated pictures
 
 ## Performance, Ergonomics, and Compatibility
